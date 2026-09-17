@@ -14,6 +14,16 @@ class SiteCreate(BaseModel):
     geometry: GeoJSONPolygon
 
 
+class SiteUpdate(BaseModel):
+    name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=255,
+    )
+    description: str | None = None
+    geometry: GeoJSONPolygon | None = None
+
+
 class SiteResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

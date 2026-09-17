@@ -72,3 +72,20 @@ def calculate_area_hectares(
     area_m2 = db.scalar(statement)
 
     return float(area_m2) / 10_000
+
+def update_site(
+    db: Session,
+    site: Site,
+) -> Site:
+    db.commit()
+    db.refresh(site)
+
+    return site
+
+
+def delete_site(
+    db: Session,
+    site: Site,
+) -> None:
+    db.delete(site)
+    db.commit()
