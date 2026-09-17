@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     app_name: str = "Darukaa.Earth"
     environment: str = "development"
     debug: bool = True
+    database_url: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

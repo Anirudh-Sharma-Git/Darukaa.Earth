@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.database import get_db
 
 
 app = FastAPI(
@@ -15,4 +18,14 @@ def health_check():
         "status": "ok",
         "service": settings.app_name,
         "environment": settings.environment,
+    }
+
+
+@app.get("/health/db")
+def database_health_check(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT 1"))
+
+    return {
+        "database": "ok",
+        "result": result.scalar(),
     }
