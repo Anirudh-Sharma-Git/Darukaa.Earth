@@ -3,10 +3,13 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from app.models.project import Project
 
 class User(Base):
     __tablename__ = "users"
@@ -47,3 +50,9 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    projects: Mapped[list["Project"]] = relationship(
+    "Project",
+    back_populates="owner",
+    cascade="all, delete-orphan",
+)
