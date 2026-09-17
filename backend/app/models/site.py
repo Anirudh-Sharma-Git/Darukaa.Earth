@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.measurement import SiteMeasurement
+    from app.models.project import Project
 
 class Site(Base):
     __tablename__ = "sites"
