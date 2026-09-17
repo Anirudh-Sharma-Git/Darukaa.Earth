@@ -5,6 +5,7 @@ from app.routers.auth import router as auth_router
 from app.core.config import settings
 from app.core.database import get_db
 from app.routers.projects import router as projects_router
+from app.routers.sites import router as sites_router
 
 
 
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 app.include_router(auth_router)
 app.include_router(projects_router)
+app.include_router(sites_router)
 
 
 @app.get("/health")
