@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.routers.auth import router as auth_router
 from app.core.config import settings
 from app.core.database import get_db
+from app.routers.projects import router as projects_router
 
 
 
@@ -12,6 +13,7 @@ app = FastAPI(
     debug=settings.debug,
 )
 app.include_router(auth_router)
+app.include_router(projects_router)
 
 
 @app.get("/health")
