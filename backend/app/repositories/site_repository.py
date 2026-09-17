@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.site import Site
-
+from app.models.project import Project
 
 def create_site(
     db: Session,
@@ -89,3 +89,18 @@ def delete_site(
 ) -> None:
     db.delete(site)
     db.commit()
+
+def get_site_by_id_for_user(
+    db: Session,
+    site_id: UUID,
+    user_id: UUID,
+) -> Site | None:
+    statement = (
+        select(Site)
+        .join(Project, Site.project_id == Project.id)
+        .where(
+            Site.id == site_id,
+            Project.created_by == user_id,
+        )
+    )
+    return db.scalar(statement)

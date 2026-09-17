@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.routers.projects import router as projects_router
 from app.routers.sites import router as sites_router
 from app.routers.measurements import router as measurements_router
+from app.routers.analytics import router as analytics_router
 
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(sites_router)
 app.include_router(measurements_router)
+app.include_router(analytics_router)
 
 
 @app.get("/health")
