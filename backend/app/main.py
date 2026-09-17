@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.routers.projects import router as projects_router
 from app.routers.sites import router as sites_router
-
+from app.routers.measurements import router as measurements_router
 
 
 app = FastAPI(
@@ -16,6 +16,7 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(sites_router)
+app.include_router(measurements_router)
 
 
 @app.get("/health")
