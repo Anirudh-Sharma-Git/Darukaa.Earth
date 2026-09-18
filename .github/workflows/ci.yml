@@ -13,9 +13,28 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-latest
 
+    env:
+      DATABASE_URL: postgresql+psycopg://ci:ci@localhost:5432/ci
+      JWT_SECRET_KEY: ci-test-secret-key
+
     defaults:
       run:
         working-directory: backend
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ci -d ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout repository
@@ -37,7 +56,6 @@ jobs:
 
       - name: Run tests
         run: pytest
-
 
   frontend:
     name: Frontend CI
