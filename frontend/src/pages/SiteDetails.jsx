@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getSiteAnalytics } from "../api/analytics";
 import { createMeasurement } from "../api/measurements";
+import { getSite } from "../api/sites";
+import AnalyticsChart from "../components/AnalyticsChart";
+import SiteGeometryMap from "../components/SiteGeometryMap";
 
 function SiteDetails() {
   const { siteId } = useParams();
 
   const [analytics, setAnalytics] = useState(null);
+  const [site, setSite] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -25,18 +30,24 @@ function SiteDetails() {
   const [creatingMeasurement, setCreatingMeasurement] =
     useState(false);
 
-  async function loadAnalytics() {
+  async function loadSiteData() {
     try {
       setLoading(true);
       setError("");
 
-      const data = await getSiteAnalytics(siteId);
+      const analyticsData = await getSiteAnalytics(siteId);
 
-      setAnalytics(data);
+      const siteData = await getSite(
+        analyticsData.project_id,
+        siteId,
+      );
+
+      setAnalytics(analyticsData);
+      setSite(siteData);
     } catch (error) {
       setError(
         error.response?.data?.detail ||
-          "Unable to load site analytics.",
+          "Unable to load site.",
       );
     } finally {
       setLoading(false);
@@ -44,7 +55,7 @@ function SiteDetails() {
   }
 
   useEffect(() => {
-    loadAnalytics();
+    loadSiteData();
   }, [siteId]);
 
   async function handleCreateMeasurement(event) {
@@ -86,7 +97,7 @@ function SiteDetails() {
 
       setShowMeasurementForm(false);
 
-      await loadAnalytics();
+      await loadSiteData();
     } catch (error) {
       setError(
         error.response?.data?.detail ||
@@ -113,7 +124,7 @@ function SiteDetails() {
     );
   }
 
-  if (!analytics) {
+  if (!analytics || !site) {
     return null;
   }
 
@@ -127,10 +138,10 @@ function SiteDetails() {
         </Link>
 
         <Link
-          to="/dashboard"
+          to={`/projects/${analytics.project_id}`}
           className="secondary-button"
         >
-          Back to Dashboard
+          Back to Project
         </Link>
       </nav>
 
@@ -188,6 +199,47 @@ function SiteDetails() {
                 : "—"}
             </strong>
           </div>
+        </section>
+
+        <section className="site-map-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">GEOGRAPHY</p>
+
+              <h2>Site Boundary</h2>
+            </div>
+          </div>
+
+          <SiteGeometryMap
+            geometry={site.geometry}
+          />
+        </section>
+
+        <section className="analytics-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">
+                PERFORMANCE OVER TIME
+              </p>
+
+              <h2>Environmental Trends</h2>
+            </div>
+          </div>
+
+          {time_series.length < 2 ? (
+            <div className="empty-state">
+              <h3>Not enough data</h3>
+
+              <p>
+                Add at least two measurements to visualize
+                environmental trends over time.
+              </p>
+            </div>
+          ) : (
+            <AnalyticsChart
+              timeSeries={time_series}
+            />
+          )}
         </section>
 
         <section className="measurements-section">

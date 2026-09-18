@@ -4,6 +4,15 @@ export async function getSites(projectId) {
   const response = await apiClient.get(
     `/api/v1/projects/${projectId}/sites`,
   );
+
+  return response.data;
+}
+
+export async function getSite(projectId, siteId) {
+  const response = await apiClient.get(
+    `/api/v1/projects/${projectId}/sites/${siteId}`,
+  );
+
   return response.data;
 }
 
@@ -12,5 +21,6 @@ export async function createSite(projectId, data) {
     `/api/v1/projects/${projectId}/sites`,
     data,
   );
+
   return response.data;
 }

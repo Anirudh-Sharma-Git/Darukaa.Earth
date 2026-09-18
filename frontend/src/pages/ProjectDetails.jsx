@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../api/projects";
 import { createSite, getSites } from "../api/sites";
+import ProjectSitesMap from "../components/ProjectSitesMap";
 import SiteMap from "../components/SiteMap";
 
 function ProjectDetails() {
   const { projectId } = useParams();
+  const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
   const [sites, setSites] = useState([]);
@@ -86,17 +88,25 @@ function ProjectDetails() {
   );
 
   if (loading) {
-    return <p>Loading project...</p>;
+    return (
+      <main className="project-details-page">
+        <p>Loading project...</p>
+      </main>
+    );
   }
 
   if (!project) {
-    return <p>Project not found.</p>;
+    return (
+      <main className="project-details-page">
+        <p>Project not found.</p>
+      </main>
+    );
   }
 
   return (
     <main className="project-details-page">
       <nav className="dashboard-navbar">
-        <Link to="/dashboard" className="brand">
+        <Link to="/" className="brand">
           Darukaa<span>.Earth</span>
         </Link>
 
@@ -149,6 +159,31 @@ function ProjectDetails() {
             <span>Project Status</span>
             <strong>{project.status}</strong>
           </div>
+        </section>
+
+        <section className="project-map-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">SITE MAP</p>
+
+              <h2>Project Geography</h2>
+            </div>
+          </div>
+
+          {sites.length === 0 ? (
+            <div className="empty-state">
+              <p>
+                Add a site to see it on the project map.
+              </p>
+            </div>
+          ) : (
+            <ProjectSitesMap
+              sites={sites}
+              onSiteClick={(siteId) => {
+                navigate(`/sites/${siteId}`);
+              }}
+            />
+          )}
         </section>
 
         <section className="sites-section">
