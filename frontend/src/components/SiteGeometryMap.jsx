@@ -20,10 +20,7 @@ function SiteGeometryMap({ geometry }) {
       zoom: 10,
     });
 
-    map.addControl(
-      new mapboxgl.NavigationControl(),
-      "top-right",
-    );
+    map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     map.on("load", () => {
       const feature = {

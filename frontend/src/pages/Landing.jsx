@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 
-
 function Landing() {
   return (
     <main className="landing-page">
@@ -22,9 +21,7 @@ function Landing() {
 
       <section className="hero">
         <div className="hero-content">
-          <p className="eyebrow">
-            GEOSPATIAL ENVIRONMENTAL INTELLIGENCE
-          </p>
+          <p className="eyebrow">GEOSPATIAL ENVIRONMENTAL INTELLIGENCE</p>
 
           <h1>
             Understand the Earth.
@@ -33,9 +30,8 @@ function Landing() {
           </h1>
 
           <p className="hero-description">
-            A geospatial platform for monitoring carbon,
-            biodiversity, and environmental performance
-            across real-world project sites.
+            A geospatial platform for monitoring carbon, biodiversity, and
+            environmental performance across real-world project sites.
           </p>
 
           <div className="hero-actions">
@@ -51,21 +47,13 @@ function Landing() {
 
         <div className="hero-visual">
           <div className="earth-card">
-            <div className="earth">
-              EARTH
-            </div>
+            <div className="earth">EARTH</div>
 
-            <div className="map-label label-one">
-              Carbon
-            </div>
+            <div className="map-label label-one">Carbon</div>
 
-            <div className="map-label label-two">
-              Biodiversity
-            </div>
+            <div className="map-label label-two">Biodiversity</div>
 
-            <div className="map-label label-three">
-              Sites
-            </div>
+            <div className="map-label label-three">Sites</div>
           </div>
         </div>
       </section>
@@ -74,24 +62,23 @@ function Landing() {
         <article className="feature-card">
           <h2>Project Monitoring</h2>
           <p>
-            Organize environmental projects and manage
-            multiple geographical sites.
+            Organize environmental projects and manage multiple geographical
+            sites.
           </p>
         </article>
 
         <article className="feature-card">
           <h2>Interactive Mapping</h2>
           <p>
-            Explore project boundaries and draw new sites
-            directly on an interactive map.
+            Explore project boundaries and draw new sites directly on an
+            interactive map.
           </p>
         </article>
 
         <article className="feature-card">
           <h2>Environmental Analytics</h2>
           <p>
-            Track carbon, biodiversity, and tree-cover
-            performance over time.
+            Track carbon, biodiversity, and tree-cover performance over time.
           </p>
         </article>
       </section>

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 
-
 function Login() {
   const navigate = useNavigate();
 
@@ -14,7 +13,6 @@ function Login() {
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -34,7 +32,6 @@ function Login() {
       setSubmitting(false);
     }
   }
-
 
   return (
     <main className="auth-page">
@@ -80,8 +77,7 @@ function Login() {
         </form>
 
         <p className="auth-footer">
-          Don't have an account?{" "}
-          <Link to="/register">Create one</Link>
+          Don't have an account? <Link to="/register">Create one</Link>
         </p>
       </div>
     </main>

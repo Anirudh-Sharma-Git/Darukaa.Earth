@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getSiteAnalytics } from "../api/analytics";
 import { createMeasurement } from "../api/measurements";
@@ -15,48 +15,71 @@ function SiteDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [showMeasurementForm, setShowMeasurementForm] =
-    useState(false);
+  const [showMeasurementForm, setShowMeasurementForm] = useState(false);
 
-  const [measurementDate, setMeasurementDate] =
-    useState("");
+  const [measurementDate, setMeasurementDate] = useState("");
   const [carbonStock, setCarbonStock] = useState("");
-  const [carbonSequestered, setCarbonSequestered] =
-    useState("");
-  const [biodiversityScore, setBiodiversityScore] =
-    useState("");
+  const [carbonSequestered, setCarbonSequestered] = useState("");
+  const [biodiversityScore, setBiodiversityScore] = useState("");
   const [treeCover, setTreeCover] = useState("");
 
-  const [creatingMeasurement, setCreatingMeasurement] =
-    useState(false);
+  const [creatingMeasurement, setCreatingMeasurement] = useState(false);
 
-  async function loadSiteData() {
+  const fetchSiteData = useCallback(async () => {
+    const analyticsData = await getSiteAnalytics(siteId);
+
+    const siteData = await getSite(analyticsData.project_id, siteId);
+
+    return {
+      analytics: analyticsData,
+      site: siteData,
+    };
+  }, [siteId]);
+
+  const loadSiteData = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const analyticsData = await getSiteAnalytics(siteId);
+      const data = await fetchSiteData();
 
-      const siteData = await getSite(
-        analyticsData.project_id,
-        siteId,
-      );
-
-      setAnalytics(analyticsData);
-      setSite(siteData);
+      setAnalytics(data.analytics);
+      setSite(data.site);
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to load site.",
-      );
+      setError(error.response?.data?.detail || "Unable to load site.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchSiteData]);
 
   useEffect(() => {
-    loadSiteData();
-  }, [siteId]);
+    let cancelled = false;
+
+    async function initializeSite() {
+      try {
+        const data = await fetchSiteData();
+
+        if (cancelled) return;
+
+        setAnalytics(data.analytics);
+        setSite(data.site);
+      } catch (error) {
+        if (cancelled) return;
+
+        setError(error.response?.data?.detail || "Unable to load site.");
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initializeSite();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchSiteData]);
 
   async function handleCreateMeasurement(event) {
     event.preventDefault();
@@ -65,29 +88,15 @@ function SiteDetails() {
       setCreatingMeasurement(true);
       setError("");
 
-      await createMeasurement(
-        analytics.project_id,
-        siteId,
-        {
-          measurement_date: measurementDate,
-          carbon_stock:
-            carbonStock === ""
-              ? null
-              : Number(carbonStock),
-          carbon_sequestered:
-            carbonSequestered === ""
-              ? null
-              : Number(carbonSequestered),
-          biodiversity_score:
-            biodiversityScore === ""
-              ? null
-              : Number(biodiversityScore),
-          tree_cover:
-            treeCover === ""
-              ? null
-              : Number(treeCover),
-        },
-      );
+      await createMeasurement(analytics.project_id, siteId, {
+        measurement_date: measurementDate,
+        carbon_stock: carbonStock === "" ? null : Number(carbonStock),
+        carbon_sequestered:
+          carbonSequestered === "" ? null : Number(carbonSequestered),
+        biodiversity_score:
+          biodiversityScore === "" ? null : Number(biodiversityScore),
+        tree_cover: treeCover === "" ? null : Number(treeCover),
+      });
 
       setMeasurementDate("");
       setCarbonStock("");
@@ -99,10 +108,7 @@ function SiteDetails() {
 
       await loadSiteData();
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to create measurement.",
-      );
+      setError(error.response?.data?.detail || "Unable to create measurement.");
     } finally {
       setCreatingMeasurement(false);
     }
@@ -153,41 +159,31 @@ function SiteDetails() {
             <h1>{analytics.site_name}</h1>
 
             <p>
-              Environmental monitoring and performance
-              data for this geographical site.
+              Environmental monitoring and performance data for this
+              geographical site.
             </p>
           </div>
         </header>
 
-        {error && (
-          <div className="dashboard-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="dashboard-error">{error}</div>}
 
         <section className="analytics-grid">
           <div className="stat-card">
             <span>Area</span>
 
-            <strong>
-              {analytics.area_hectares.toFixed(2)} ha
-            </strong>
+            <strong>{analytics.area_hectares.toFixed(2)} ha</strong>
           </div>
 
           <div className="stat-card">
             <span>Carbon Stock</span>
 
-            <strong>
-              {summary.latest_carbon_stock ?? "—"}
-            </strong>
+            <strong>{summary.latest_carbon_stock ?? "—"}</strong>
           </div>
 
           <div className="stat-card">
             <span>Biodiversity</span>
 
-            <strong>
-              {summary.latest_biodiversity_score ?? "—"}
-            </strong>
+            <strong>{summary.latest_biodiversity_score ?? "—"}</strong>
           </div>
 
           <div className="stat-card">
@@ -210,17 +206,13 @@ function SiteDetails() {
             </div>
           </div>
 
-          <SiteGeometryMap
-            geometry={site.geometry}
-          />
+          <SiteGeometryMap geometry={site.geometry} />
         </section>
 
         <section className="analytics-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">
-                PERFORMANCE OVER TIME
-              </p>
+              <p className="eyebrow">PERFORMANCE OVER TIME</p>
 
               <h2>Environmental Trends</h2>
             </div>
@@ -231,23 +223,19 @@ function SiteDetails() {
               <h3>Not enough data</h3>
 
               <p>
-                Add at least two measurements to visualize
-                environmental trends over time.
+                Add at least two measurements to visualize environmental trends
+                over time.
               </p>
             </div>
           ) : (
-            <AnalyticsChart
-              timeSeries={time_series}
-            />
+            <AnalyticsChart timeSeries={time_series} />
           )}
         </section>
 
         <section className="measurements-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">
-                HISTORICAL DATA
-              </p>
+              <p className="eyebrow">HISTORICAL DATA</p>
 
               <h2>Measurements</h2>
             </div>
@@ -255,44 +243,30 @@ function SiteDetails() {
             <button
               className="primary-button"
               onClick={() => {
-                setShowMeasurementForm(
-                  (value) => !value,
-                );
+                setShowMeasurementForm((value) => !value);
                 setError("");
               }}
             >
-              {showMeasurementForm
-                ? "Cancel"
-                : "+ Add Measurement"}
+              {showMeasurementForm ? "Cancel" : "+ Add Measurement"}
             </button>
           </div>
 
           {showMeasurementForm && (
             <div className="measurement-form-panel">
-              <h3>
-                Add Environmental Measurement
-              </h3>
+              <h3>Add Environmental Measurement</h3>
 
               <form onSubmit={handleCreateMeasurement}>
-                <label htmlFor="measurement-date">
-                  Measurement Date
-                </label>
+                <label htmlFor="measurement-date">Measurement Date</label>
 
                 <input
                   id="measurement-date"
                   type="date"
                   value={measurementDate}
-                  onChange={(event) =>
-                    setMeasurementDate(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setMeasurementDate(event.target.value)}
                   required
                 />
 
-                <label htmlFor="carbon-stock">
-                  Carbon Stock
-                </label>
+                <label htmlFor="carbon-stock">Carbon Stock</label>
 
                 <input
                   id="carbon-stock"
@@ -300,17 +274,11 @@ function SiteDetails() {
                   min="0"
                   step="any"
                   value={carbonStock}
-                  onChange={(event) =>
-                    setCarbonStock(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setCarbonStock(event.target.value)}
                   placeholder="e.g. 125.5"
                 />
 
-                <label htmlFor="carbon-sequestered">
-                  Carbon Sequestered
-                </label>
+                <label htmlFor="carbon-sequestered">Carbon Sequestered</label>
 
                 <input
                   id="carbon-sequestered"
@@ -318,17 +286,11 @@ function SiteDetails() {
                   min="0"
                   step="any"
                   value={carbonSequestered}
-                  onChange={(event) =>
-                    setCarbonSequestered(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setCarbonSequestered(event.target.value)}
                   placeholder="e.g. 12.4"
                 />
 
-                <label htmlFor="biodiversity-score">
-                  Biodiversity Score
-                </label>
+                <label htmlFor="biodiversity-score">Biodiversity Score</label>
 
                 <input
                   id="biodiversity-score"
@@ -337,17 +299,11 @@ function SiteDetails() {
                   max="100"
                   step="any"
                   value={biodiversityScore}
-                  onChange={(event) =>
-                    setBiodiversityScore(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setBiodiversityScore(event.target.value)}
                   placeholder="0 - 100"
                 />
 
-                <label htmlFor="tree-cover">
-                  Tree Cover (%)
-                </label>
+                <label htmlFor="tree-cover">Tree Cover (%)</label>
 
                 <input
                   id="tree-cover"
@@ -356,11 +312,7 @@ function SiteDetails() {
                   max="100"
                   step="any"
                   value={treeCover}
-                  onChange={(event) =>
-                    setTreeCover(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setTreeCover(event.target.value)}
                   placeholder="0 - 100"
                 />
 
@@ -369,9 +321,7 @@ function SiteDetails() {
                   className="primary-button"
                   disabled={creatingMeasurement}
                 >
-                  {creatingMeasurement
-                    ? "Saving..."
-                    : "Save Measurement"}
+                  {creatingMeasurement ? "Saving..." : "Save Measurement"}
                 </button>
               </form>
             </div>
@@ -382,8 +332,7 @@ function SiteDetails() {
               <h2>No measurements yet</h2>
 
               <p>
-                Add your first environmental measurement
-                using the button above.
+                Add your first environmental measurement using the button above.
               </p>
             </div>
           ) : (
@@ -393,23 +342,16 @@ function SiteDetails() {
                   className="measurement-card"
                   key={measurement.measurement_date}
                 >
-                  <strong>
-                    {measurement.measurement_date}
-                  </strong>
+                  <strong>{measurement.measurement_date}</strong>
+
+                  <span>Carbon Stock: {measurement.carbon_stock ?? "—"}</span>
 
                   <span>
-                    Carbon Stock:{" "}
-                    {measurement.carbon_stock ?? "—"}
+                    Carbon Sequestered: {measurement.carbon_sequestered ?? "—"}
                   </span>
 
                   <span>
-                    Carbon Sequestered:{" "}
-                    {measurement.carbon_sequestered ?? "—"}
-                  </span>
-
-                  <span>
-                    Biodiversity:{" "}
-                    {measurement.biodiversity_score ?? "—"}
+                    Biodiversity: {measurement.biodiversity_score ?? "—"}
                   </span>
 
                   <span>

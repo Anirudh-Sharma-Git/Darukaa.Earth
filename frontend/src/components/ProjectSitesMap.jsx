@@ -26,10 +26,7 @@ function ProjectSitesMap({ sites, onSiteClick }) {
       zoom: 10,
     });
 
-    map.addControl(
-      new mapboxgl.NavigationControl(),
-      "top-right",
-    );
+    map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     function handleSiteClick(event) {
       const feature = event.features?.[0];
@@ -38,9 +35,7 @@ function ProjectSitesMap({ sites, onSiteClick }) {
         return;
       }
 
-      callbackRef.current?.(
-        feature.properties.id,
-      );
+      callbackRef.current?.(feature.properties.id);
     }
 
     function handleMouseEnter() {
@@ -90,41 +85,25 @@ function ProjectSitesMap({ sites, onSiteClick }) {
         },
       });
 
-      map.on(
-        "click",
-        "site-fill",
-        handleSiteClick,
-      );
+      map.on("click", "site-fill", handleSiteClick);
 
-      map.on(
-        "mouseenter",
-        "site-fill",
-        handleMouseEnter,
-      );
+      map.on("mouseenter", "site-fill", handleMouseEnter);
 
-      map.on(
-        "mouseleave",
-        "site-fill",
-        handleMouseLeave,
-      );
+      map.on("mouseleave", "site-fill", handleMouseLeave);
 
       if (features.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
 
         features.forEach((feature) => {
-          if (
-            feature.geometry?.type !== "Polygon"
-          ) {
+          if (feature.geometry?.type !== "Polygon") {
             return;
           }
 
-          feature.geometry.coordinates.forEach(
-            (ring) => {
-              ring.forEach((coordinate) => {
-                bounds.extend(coordinate);
-              });
-            },
-          );
+          feature.geometry.coordinates.forEach((ring) => {
+            ring.forEach((coordinate) => {
+              bounds.extend(coordinate);
+            });
+          });
         });
 
         if (!bounds.isEmpty()) {

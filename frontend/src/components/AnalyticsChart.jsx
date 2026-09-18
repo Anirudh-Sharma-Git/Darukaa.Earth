@@ -19,15 +19,11 @@ ChartJS.register(
 );
 
 function AnalyticsChart({ timeSeries }) {
-  const labels = timeSeries.map(
-    (measurement) => measurement.measurement_date,
-  );
+  const labels = timeSeries.map((measurement) => measurement.measurement_date);
 
   const createDataset = (label, key) => ({
     label,
-    data: timeSeries.map(
-      (measurement) => measurement[key],
-    ),
+    data: timeSeries.map((measurement) => measurement[key]),
     tension: 0.3,
     spanGaps: true,
   });
@@ -87,80 +83,46 @@ function AnalyticsChart({ timeSeries }) {
 
   const carbonStockData = {
     labels,
-    datasets: [
-      createDataset(
-        "Carbon Stock",
-        "carbon_stock",
-      ),
-    ],
+    datasets: [createDataset("Carbon Stock", "carbon_stock")],
   };
 
   const carbonSequesteredData = {
     labels,
-    datasets: [
-      createDataset(
-        "Carbon Sequestered",
-        "carbon_sequestered",
-      ),
-    ],
+    datasets: [createDataset("Carbon Sequestered", "carbon_sequestered")],
   };
 
   const biodiversityData = {
     labels,
-    datasets: [
-      createDataset(
-        "Biodiversity Score",
-        "biodiversity_score",
-      ),
-    ],
+    datasets: [createDataset("Biodiversity Score", "biodiversity_score")],
   };
 
   const treeCoverData = {
     labels,
-    datasets: [
-      createDataset(
-        "Tree Cover",
-        "tree_cover",
-      ),
-    ],
+    datasets: [createDataset("Tree Cover", "tree_cover")],
   };
 
   return (
     <div className="analytics-charts-grid">
       <div className="analytics-chart-panel">
-        <Line
-          data={carbonStockData}
-          options={createOptions(
-            "Carbon Stock",
-          )}
-        />
+        <Line data={carbonStockData} options={createOptions("Carbon Stock")} />
       </div>
 
       <div className="analytics-chart-panel">
         <Line
           data={carbonSequesteredData}
-          options={createOptions(
-            "Carbon Sequestered",
-          )}
+          options={createOptions("Carbon Sequestered")}
         />
       </div>
 
       <div className="analytics-chart-panel">
         <Line
           data={biodiversityData}
-          options={createOptions(
-            "Biodiversity Score",
-          )}
+          options={createOptions("Biodiversity Score")}
         />
       </div>
 
       <div className="analytics-chart-panel">
-        <Line
-          data={treeCoverData}
-          options={createOptions(
-            "Tree Cover (%)",
-          )}
-        />
+        <Line data={treeCoverData} options={createOptions("Tree Cover (%)")} />
       </div>
     </div>
   );

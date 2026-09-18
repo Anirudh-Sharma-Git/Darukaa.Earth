@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../api/projects";
 import { createSite, getSites } from "../api/sites";
@@ -22,31 +22,62 @@ function ProjectDetails() {
   const [geometry, setGeometry] = useState(null);
   const [creatingSite, setCreatingSite] = useState(false);
 
-  async function loadProjectData() {
+  const fetchProjectData = useCallback(async () => {
+    const [projectData, sitesData] = await Promise.all([
+      getProject(projectId),
+      getSites(projectId),
+    ]);
+
+    return {
+      project: projectData,
+      sites: sitesData,
+    };
+  }, [projectId]);
+
+  const loadProjectData = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const [projectData, sitesData] = await Promise.all([
-        getProject(projectId),
-        getSites(projectId),
-      ]);
+      const data = await fetchProjectData();
 
-      setProject(projectData);
-      setSites(sitesData);
+      setProject(data.project);
+      setSites(data.sites);
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to load project.",
-      );
+      setError(error.response?.data?.detail || "Unable to load project.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchProjectData]);
 
   useEffect(() => {
-    loadProjectData();
-  }, [projectId]);
+    let cancelled = false;
+
+    async function initializeProject() {
+      try {
+        const data = await fetchProjectData();
+
+        if (cancelled) return;
+
+        setProject(data.project);
+        setSites(data.sites);
+      } catch (error) {
+        if (cancelled) return;
+
+        setError(error.response?.data?.detail || "Unable to load project.");
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initializeProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProjectData]);
 
   async function handleCreateSite(event) {
     event.preventDefault();
@@ -73,10 +104,7 @@ function ProjectDetails() {
 
       await loadProjectData();
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to create site.",
-      );
+      setError(error.response?.data?.detail || "Unable to create site.");
     } finally {
       setCreatingSite(false);
     }
@@ -110,10 +138,7 @@ function ProjectDetails() {
           Darukaa<span>.Earth</span>
         </Link>
 
-        <Link
-          to="/dashboard"
-          className="secondary-button"
-        >
+        <Link to="/dashboard" className="secondary-button">
           Back to Dashboard
         </Link>
       </nav>
@@ -125,22 +150,13 @@ function ProjectDetails() {
 
             <h1>{project.name}</h1>
 
-            <p>
-              {project.description ||
-                "No description provided."}
-            </p>
+            <p>{project.description || "No description provided."}</p>
           </div>
 
-          <span className="project-status">
-            {project.status}
-          </span>
+          <span className="project-status">{project.status}</span>
         </header>
 
-        {error && (
-          <div className="dashboard-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="dashboard-error">{error}</div>}
 
         <section className="dashboard-stats">
           <div className="stat-card">
@@ -150,9 +166,7 @@ function ProjectDetails() {
 
           <div className="stat-card">
             <span>Total Area</span>
-            <strong>
-              {totalArea.toFixed(2)} ha
-            </strong>
+            <strong>{totalArea.toFixed(2)} ha</strong>
           </div>
 
           <div className="stat-card">
@@ -172,9 +186,7 @@ function ProjectDetails() {
 
           {sites.length === 0 ? (
             <div className="empty-state">
-              <p>
-                Add a site to see it on the project map.
-              </p>
+              <p>Add a site to see it on the project map.</p>
             </div>
           ) : (
             <ProjectSitesMap
@@ -188,16 +200,11 @@ function ProjectDetails() {
 
         <section className="sites-section">
           <div>
-            <p className="eyebrow">
-              GEOGRAPHICAL DATA
-            </p>
+            <p className="eyebrow">GEOGRAPHICAL DATA</p>
 
             <h2>Project Sites</h2>
 
-            <p>
-              Define and monitor geographical areas
-              within this project.
-            </p>
+            <p>Define and monitor geographical areas within this project.</p>
           </div>
 
           <button
@@ -218,38 +225,29 @@ function ProjectDetails() {
             <h2>Add Geographical Site</h2>
 
             <form onSubmit={handleCreateSite}>
-              <label htmlFor="site-name">
-                Site Name
-              </label>
+              <label htmlFor="site-name">Site Name</label>
 
               <input
                 id="site-name"
                 type="text"
                 value={siteName}
-                onChange={(event) =>
-                  setSiteName(event.target.value)
-                }
+                onChange={(event) => setSiteName(event.target.value)}
                 placeholder="e.g. Northern Forest Zone"
                 required
               />
 
-              <label htmlFor="site-description">
-                Description
-              </label>
+              <label htmlFor="site-description">Description</label>
 
               <textarea
                 id="site-description"
                 value={siteDescription}
-                onChange={(event) =>
-                  setSiteDescription(event.target.value)
-                }
+                onChange={(event) => setSiteDescription(event.target.value)}
                 placeholder="Describe this site..."
                 rows={3}
               />
 
               <p className="map-instruction">
-                Draw the geographical boundary using
-                the polygon tool.
+                Draw the geographical boundary using the polygon tool.
               </p>
 
               <SiteMap
@@ -270,9 +268,7 @@ function ProjectDetails() {
                 className="primary-button"
                 disabled={creatingSite}
               >
-                {creatingSite
-                  ? "Creating Site..."
-                  : "Create Site"}
+                {creatingSite ? "Creating Site..." : "Create Site"}
               </button>
             </form>
           </section>
@@ -283,10 +279,7 @@ function ProjectDetails() {
             <div className="empty-state">
               <h2>No sites yet</h2>
 
-              <p>
-                Add your first geographical site to
-                this project.
-              </p>
+              <p>Add your first geographical site to this project.</p>
             </div>
           ) : (
             <div className="project-grid">
@@ -297,21 +290,14 @@ function ProjectDetails() {
                   className="project-card"
                 >
                   <div className="project-card-top">
-                    <span>
-                      {site.area_hectares.toFixed(2)} ha
-                    </span>
+                    <span>{site.area_hectares.toFixed(2)} ha</span>
                   </div>
 
                   <h2>{site.name}</h2>
 
-                  <p>
-                    {site.description ||
-                      "No description provided."}
-                  </p>
+                  <p>{site.description || "No description provided."}</p>
 
-                  <span className="project-card-link">
-                    View site →
-                  </span>
+                  <span className="project-card-link">View site →</span>
                 </Link>
               ))}
             </div>

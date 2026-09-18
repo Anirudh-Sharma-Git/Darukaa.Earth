@@ -1,6 +1,10 @@
 :root {
   font-family:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 
   color: #17211b;
@@ -400,7 +404,6 @@ select {
   }
 }
 
-
 .dashboard-page {
   min-height: 100vh;
   background: #f6f7f5;
@@ -507,7 +510,9 @@ select {
   border-radius: 14px;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .project-card:hover {
@@ -995,4 +1000,11 @@ select {
   .analytics-section h2 {
     font-size: 24px;
   }
+}
+
+.page-loader {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createProject, getProjects } from "../api/projects";
 import { getSites } from "../api/sites";
@@ -13,73 +13,102 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [showCreateModal, setShowCreateModal] =
-    useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] =
-    useState("");
+  const [projectDescription, setProjectDescription] = useState("");
 
   const [creating, setCreating] = useState(false);
 
-  async function loadProjects() {
+  const fetchProjects = useCallback(async () => {
+    const projectData = await getProjects();
+
+    const siteResults = await Promise.all(
+      projectData.map(async (project) => {
+        try {
+          const sites = await getSites(project.id);
+
+          const totalArea = sites.reduce(
+            (total, site) => total + Number(site.area_hectares || 0),
+            0,
+          );
+
+          return {
+            projectId: project.id,
+            siteCount: sites.length,
+            totalArea,
+          };
+        } catch {
+          return {
+            projectId: project.id,
+            siteCount: 0,
+            totalArea: 0,
+          };
+        }
+      }),
+    );
+
+    const stats = {};
+
+    siteResults.forEach((result) => {
+      stats[result.projectId] = {
+        siteCount: result.siteCount,
+        totalArea: result.totalArea,
+      };
+    });
+
+    return {
+      projects: projectData,
+      stats,
+    };
+  }, []);
+
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
-      const projectData = await getProjects();
+      const data = await fetchProjects();
 
-      setProjects(projectData);
-
-      const siteResults = await Promise.all(
-        projectData.map(async (project) => {
-          try {
-            const sites = await getSites(project.id);
-
-            const totalArea = sites.reduce(
-              (total, site) =>
-                total + Number(site.area_hectares || 0),
-              0,
-            );
-
-            return {
-              projectId: project.id,
-              siteCount: sites.length,
-              totalArea,
-            };
-          } catch {
-            return {
-              projectId: project.id,
-              siteCount: 0,
-              totalArea: 0,
-            };
-          }
-        }),
-      );
-
-      const stats = {};
-
-      siteResults.forEach((result) => {
-        stats[result.projectId] = {
-          siteCount: result.siteCount,
-          totalArea: result.totalArea,
-        };
-      });
-
-      setProjectStats(stats);
+      setProjects(data.projects);
+      setProjectStats(data.stats);
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to load projects.",
-      );
+      setError(error.response?.data?.detail || "Unable to load projects.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchProjects]);
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    let cancelled = false;
+
+    async function initializeDashboard() {
+      try {
+        const data = await fetchProjects();
+
+        if (cancelled) return;
+
+        setProjects(data.projects);
+        setProjectStats(data.stats);
+      } catch (error) {
+        if (cancelled) return;
+
+        setError(
+          error.response?.data?.detail || "Unable to load projects.",
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initializeDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProjects]);
 
   async function handleCreateProject(event) {
     event.preventDefault();
@@ -94,8 +123,7 @@ function Dashboard() {
 
       await createProject({
         name: projectName.trim(),
-        description:
-          projectDescription.trim() || null,
+        description: projectDescription.trim() || null,
       });
 
       setProjectName("");
@@ -104,10 +132,7 @@ function Dashboard() {
 
       await loadProjects();
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to create project.",
-      );
+      setError(error.response?.data?.detail || "Unable to create project.");
     } finally {
       setCreating(false);
     }
@@ -137,10 +162,7 @@ function Dashboard() {
         <div className="dashboard-nav-right">
           <span>{user?.email}</span>
 
-          <button
-            className="logout-button"
-            onClick={logout}
-          >
+          <button className="logout-button" onClick={logout}>
             Logout
           </button>
         </div>
@@ -149,16 +171,11 @@ function Dashboard() {
       <section className="dashboard-content">
         <header className="dashboard-header">
           <div>
-            <p className="eyebrow">
-              ENVIRONMENTAL INTELLIGENCE
-            </p>
+            <p className="eyebrow">ENVIRONMENTAL INTELLIGENCE</p>
 
             <h1>Project Dashboard</h1>
 
-            <p>
-              Manage your environmental projects and
-              geographical sites.
-            </p>
+            <p>Manage your environmental projects and geographical sites.</p>
           </div>
 
           <button
@@ -172,46 +189,34 @@ function Dashboard() {
           </button>
         </header>
 
-        {error && (
-          <div className="dashboard-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="dashboard-error">{error}</div>}
 
         <section className="dashboard-stats">
           <div className="stat-card">
             <span>Total Projects</span>
-
             <strong>{projects.length}</strong>
           </div>
 
           <div className="stat-card">
             <span>Active Projects</span>
-
             <strong>{activeProjects}</strong>
           </div>
 
           <div className="stat-card">
             <span>Environmental Sites</span>
-
             <strong>{totalSites}</strong>
           </div>
 
           <div className="stat-card">
             <span>Monitored Area</span>
-
-            <strong>
-              {totalArea.toFixed(2)} ha
-            </strong>
+            <strong>{totalArea.toFixed(2)} ha</strong>
           </div>
         </section>
 
         <section className="projects-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">
-                YOUR WORKSPACE
-              </p>
+              <p className="eyebrow">YOUR WORKSPACE</p>
 
               <h2>Projects</h2>
             </div>
@@ -226,15 +231,13 @@ function Dashboard() {
               <h2>No projects yet</h2>
 
               <p>
-                Create your first environmental project
-                to start monitoring sites and analytics.
+                Create your first environmental project to start monitoring
+                sites and analytics.
               </p>
 
               <button
                 className="primary-button"
-                onClick={() =>
-                  setShowCreateModal(true)
-                }
+                onClick={() => setShowCreateModal(true)}
               >
                 Create Your First Project
               </button>
@@ -242,11 +245,10 @@ function Dashboard() {
           ) : (
             <div className="project-grid">
               {projects.map((project) => {
-                const stats =
-                  projectStats[project.id] || {
-                    siteCount: 0,
-                    totalArea: 0,
-                  };
+                const stats = projectStats[project.id] || {
+                  siteCount: 0,
+                  totalArea: 0,
+                };
 
                 return (
                   <Link
@@ -255,34 +257,23 @@ function Dashboard() {
                     className="project-card"
                   >
                     <div className="project-card-top">
-                      <span className="project-status">
-                        {project.status}
-                      </span>
+                      <span className="project-status">{project.status}</span>
                     </div>
 
                     <h2>{project.name}</h2>
 
-                    <p>
-                      {project.description ||
-                        "No description provided."}
-                    </p>
+                    <p>{project.description || "No description provided."}</p>
 
                     <div className="project-card-meta">
                       <span>
                         {stats.siteCount}{" "}
-                        {stats.siteCount === 1
-                          ? "site"
-                          : "sites"}
+                        {stats.siteCount === 1 ? "site" : "sites"}
                       </span>
 
-                      <span>
-                        {stats.totalArea.toFixed(2)} ha
-                      </span>
+                      <span>{stats.totalArea.toFixed(2)} ha</span>
                     </div>
 
-                    <span className="project-card-link">
-                      View project →
-                    </span>
+                    <span className="project-card-link">View project →</span>
                   </Link>
                 );
               })}
@@ -294,63 +285,45 @@ function Dashboard() {
       {showCreateModal && (
         <div
           className="modal-backdrop"
-          onClick={() =>
-            setShowCreateModal(false)
-          }
+          onClick={() => setShowCreateModal(false)}
         >
           <div
             className="create-modal"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="modal-header">
               <div>
-                <p className="eyebrow">
-                  NEW PROJECT
-                </p>
+                <p className="eyebrow">NEW PROJECT</p>
 
                 <h2>Create Project</h2>
               </div>
 
               <button
                 className="modal-close"
-                onClick={() =>
-                  setShowCreateModal(false)
-                }
+                onClick={() => setShowCreateModal(false)}
               >
                 ×
               </button>
             </div>
 
             <form onSubmit={handleCreateProject}>
-              <label htmlFor="project-name">
-                Project Name
-              </label>
+              <label htmlFor="project-name">Project Name</label>
 
               <input
                 id="project-name"
                 type="text"
                 value={projectName}
-                onChange={(event) =>
-                  setProjectName(event.target.value)
-                }
+                onChange={(event) => setProjectName(event.target.value)}
                 placeholder="e.g. Western Ghats Restoration"
                 required
               />
 
-              <label htmlFor="project-description">
-                Description
-              </label>
+              <label htmlFor="project-description">Description</label>
 
               <textarea
                 id="project-description"
                 value={projectDescription}
-                onChange={(event) =>
-                  setProjectDescription(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setProjectDescription(event.target.value)}
                 placeholder="Describe your environmental project..."
                 rows={4}
               />
@@ -359,9 +332,7 @@ function Dashboard() {
                 <button
                   type="button"
                   className="secondary-button"
-                  onClick={() =>
-                    setShowCreateModal(false)
-                  }
+                  onClick={() => setShowCreateModal(false)}
                 >
                   Cancel
                 </button>
@@ -371,9 +342,7 @@ function Dashboard() {
                   className="primary-button"
                   disabled={creating}
                 >
-                  {creating
-                    ? "Creating..."
-                    : "Create Project"}
+                  {creating ? "Creating..." : "Create Project"}
                 </button>
               </div>
             </form>

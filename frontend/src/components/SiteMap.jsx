@@ -40,10 +40,7 @@ function SiteMap({ onPolygonCreated }) {
       },
     });
 
-    map.addControl(
-      new mapboxgl.NavigationControl(),
-      "top-right",
-    );
+    map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     map.addControl(draw, "top-left");
 

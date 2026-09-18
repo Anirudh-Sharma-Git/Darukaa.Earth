@@ -1,13 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-import {
-  getCurrentUser,
-  loginUser,
-  registerUser,
-} from "../api/auth";
+import { getCurrentUser, loginUser, registerUser } from "../api/auth";
 
 const AuthContext = createContext(null);
-
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -79,7 +74,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-
+// oxlint-disable-next-line react/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
 

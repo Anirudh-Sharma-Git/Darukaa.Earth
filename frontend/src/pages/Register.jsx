@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 
-
 function Register() {
   const navigate = useNavigate();
 
@@ -15,7 +14,6 @@ function Register() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -26,15 +24,11 @@ function Register() {
       await register(email, password);
       navigate("/dashboard");
     } catch (error) {
-      setError(
-        error.response?.data?.detail ||
-          "Unable to create account.",
-      );
+      setError(error.response?.data?.detail || "Unable to create account.");
     } finally {
       setSubmitting(false);
     }
   }
-
 
   return (
     <main className="auth-page">
@@ -81,8 +75,7 @@ function Register() {
         </form>
 
         <p className="auth-footer">
-          Already have an account?{" "}
-          <Link to="/login">Sign in</Link>
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </main>
