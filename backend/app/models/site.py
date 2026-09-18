@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from geoalchemy2 import Geometry
@@ -7,11 +8,11 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.measurement import SiteMeasurement
     from app.models.project import Project
+
 
 class Site(Base):
     __tablename__ = "sites"
@@ -71,7 +72,7 @@ class Site(Base):
     )
 
     measurements: Mapped[list["SiteMeasurement"]] = relationship(
-    "SiteMeasurement",
-    back_populates="site",
-    cascade="all, delete-orphan",
-)
+        "SiteMeasurement",
+        back_populates="site",
+        cascade="all, delete-orphan",
+    )

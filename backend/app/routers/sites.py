@@ -20,7 +20,6 @@ from app.services.site_service import (
     update_project_site,
 )
 
-
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/sites",
     tags=["Sites"],
@@ -120,11 +119,7 @@ def update_site(
         project_id=project_id,
         name=data.name,
         description=data.description,
-        geometry=(
-            data.geometry.model_dump()
-            if data.geometry
-            else None
-        ),
+        geometry=(data.geometry.model_dump() if data.geometry else None),
     )
 
 

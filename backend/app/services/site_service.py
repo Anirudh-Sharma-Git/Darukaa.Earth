@@ -21,9 +21,7 @@ def serialize_site(site):
         "project_id": site.project_id,
         "name": site.name,
         "description": site.description,
-        "geometry": polygon_to_geojson(
-            to_shape(site.geometry)
-        ),
+        "geometry": polygon_to_geojson(to_shape(site.geometry)),
         "area_hectares": site.area_hectares,
     }
 

@@ -9,7 +9,6 @@ from app.models.user import User
 from app.schemas.analytics import SiteAnalyticsResponse
 from app.services.analytics_service import get_site_analytics
 
-
 router = APIRouter(
     prefix="/api/v1/sites",
     tags=["Analytics"],

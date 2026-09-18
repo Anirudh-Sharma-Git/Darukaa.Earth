@@ -12,9 +12,7 @@ def geojson_to_polygon(geometry: dict) -> Polygon:
         raise ValueError("Geometry cannot be empty")
 
     if not polygon.is_valid:
-        raise ValueError(
-            f"Invalid polygon: {explain_validity(polygon)}"
-        )
+        raise ValueError(f"Invalid polygon: {explain_validity(polygon)}")
 
     return polygon
 

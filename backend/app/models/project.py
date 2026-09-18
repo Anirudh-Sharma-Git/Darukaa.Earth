@@ -1,16 +1,27 @@
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String, Text, func
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.site import Site
+    from app.models.user import User
+
 
 class ProjectStatus(str, Enum):
     ACTIVE = "active"
@@ -69,7 +80,7 @@ class Project(Base):
     )
 
     sites: Mapped[list["Site"]] = relationship(
-    "Site",
-    back_populates="project",
-    cascade="all, delete-orphan",
-)
+        "Site",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )

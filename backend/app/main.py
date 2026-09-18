@@ -13,7 +13,6 @@ from app.routers.measurements import router as measurements_router
 from app.routers.projects import router as projects_router
 from app.routers.sites import router as sites_router
 
-
 configure_logging()
 
 app = FastAPI(

@@ -17,7 +17,6 @@ from app.services.measurement_service import (
 from app.services.project_service import get_user_project
 from app.services.site_service import get_project_site
 
-
 router = APIRouter(
     prefix="/api/v1/projects/{project_id}/sites/{site_id}/measurements",
     tags=["Measurements"],

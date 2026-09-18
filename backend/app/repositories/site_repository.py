@@ -4,8 +4,9 @@ from geoalchemy2 import functions as geo_func
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.site import Site
 from app.models.project import Project
+from app.models.site import Site
+
 
 def create_site(
     db: Session,
@@ -73,6 +74,7 @@ def calculate_area_hectares(
 
     return float(area_m2) / 10_000
 
+
 def update_site(
     db: Session,
     site: Site,
@@ -89,6 +91,7 @@ def delete_site(
 ) -> None:
     db.delete(site)
     db.commit()
+
 
 def get_site_by_id_for_user(
     db: Session,
