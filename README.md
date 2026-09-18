@@ -52,7 +52,7 @@ At a glance, the system is composed of five logical layers:
 
 The FastAPI app (`main.py`) registers five routers (Site, Auth, Project, Measurement, Analytics). Each router delegates to a corresponding domain service, and each domain service delegates persistence to a dedicated repository, which is the only layer that talks to the Application Database. This keeps route handlers thin, keeps business logic testable in isolation from HTTP and SQL concerns, and keeps the database access pattern consistent across resources.
 
-Deployment infrastructure (hosting, containers, environment provisioning) is intentionally kept out of this section and covered only as the remaining step under [Submission Deliverables](#submission-deliverables).
+Deployment infrastructure (hosting, containers, environment provisioning) is intentionally kept out of this section — the application is deployed on an AWS EC2 instance; see [Submission Deliverables](#submission-deliverables) for the live demo link.
 
 ## Frontend Architecture
 
@@ -219,7 +219,7 @@ User draws polygon (map UI)
 | GET | `/projects/{id}/analytics` | Aggregated stats across a project's sites |
 | GET | `/sites/{id}/analytics` | Aggregated stats for a single site |
 
-Interactive docs are available at `/docs` (Swagger UI) and `/redoc` once the API is running.
+Interactive docs are available at `/docs` (Swagger UI) and `/redoc` once the API is running — live at [http://3.235.174.146:8000/docs](http://3.235.174.146:8000/docs).
 
 ## Project Structure
 
@@ -295,12 +295,20 @@ darukaa-earth/
 
 Backend (`backend/.env`):
 ```
-DATABASE_URL=postgresql://user:password@localhost:5432/darukaa
-JWT_SECRET_KEY=change-me
+APP_NAME=Darukaa.Earth
+ENVIRONMENT=development
+DEBUG=true
+
+DATABASE_URL=postgresql+psycopg://postgres:root@localhost:5432/darukaa_earth
+
+JWT_SECRET_KEY=anirudhsharmawasbornon17thfeb2005
 JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
 CORS_ORIGINS=http://localhost:5173
 ```
+
+> **Security note:** don't commit a real `JWT_SECRET_KEY` or database password to a README or to source control — even in a private repo, secrets in git history are hard to fully rotate out. Keep an `.env.example` with placeholder values (as above) checked in, and keep the real `.env` in `.gitignore`. If a real secret was ever pasted into a doc or commit, treat it as compromised and rotate it.
 
 Frontend (`frontend/.env`):
 ```
@@ -467,16 +475,18 @@ CI must pass before merging to `main`; deployment (covered under Submission Deli
 | Users can view aggregated analytics per project/site | `analytics_service.py`, `AnalyticsChart.jsx` | ✅ Done |
 | Automated linting/testing on every PR | `.github/workflows/ci.yml` | ✅ Done |
 | Pre-commit formatting enforcement | Husky + lint-staged | ✅ Done |
-| Production deployment | — | ⏳ Remaining (see Submission Deliverables) |
+| Production deployment | Hosted on an AWS EC2 instance ([live demo](http://3.235.174.146:3000/)) | ✅ Done |
 
 ## Submission Deliverables
 
 To be considered for the position, the following must be submitted:
 
 1. **GitHub Repository Link** — a private GitHub repository containing the full-stack application code, with a clean and logical commit history. Access must be granted to the hiring team.
-   - Repository: `<add private repo link here>`
+   - Repository: [github.com/Anirudh-Sharma-Git/Darukaa.Earth](https://github.com/Anirudh-Sharma-Git/Darukaa.Earth)
+   - Note: if this needs to be a *private* repo per the requirement, double-check the repo's visibility setting — grant the hiring team access as collaborators rather than making it public.
 2. **Live Demo URL** — a public URL where the working application can be accessed and tested.
-   - Live demo: `<add live demo URL here>`
+   - Live demo: [http://3.235.174.146:3000/](http://3.235.174.146:3000/) — deployed on an AWS EC2 instance.
+   - Backend API docs (Swagger UI): [http://3.235.174.146:8000/docs](http://3.235.174.146:8000/docs)
 3. **README.md** — this document, covering:
    - High-level architecture — see [High-Level Architecture](#high-level-architecture), [Frontend Architecture](#frontend-architecture), and [Backend Architecture (Layered)](#backend-architecture-layered).
    - Database schema — see [Database Schema](#database-schema) and [Geospatial Design (PostGIS)](#geospatial-design-postgis).
