@@ -22,6 +22,7 @@ class AnalyticsSummary(BaseModel):
 
 class SiteAnalyticsResponse(BaseModel):
     site_id: UUID
+    project_id: UUID
     site_name: str
     area_hectares: float
     summary: AnalyticsSummary

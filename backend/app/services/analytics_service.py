@@ -3,8 +3,12 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.measurement_repository import get_measurements_by_site
-from app.repositories.site_repository import get_site_by_id_for_user
+from app.repositories.measurement_repository import (
+    get_measurements_by_site,
+)
+from app.repositories.site_repository import (
+    get_site_by_id_for_user,
+)
 from app.schemas.analytics import (
     AnalyticsDataPoint,
     AnalyticsSummary,
@@ -17,7 +21,6 @@ def get_site_analytics(
     site_id: UUID,
     user_id: UUID,
 ) -> SiteAnalyticsResponse:
-
     site = get_site_by_id_for_user(
         db=db,
         site_id=site_id,
@@ -62,6 +65,7 @@ def get_site_analytics(
 
     return SiteAnalyticsResponse(
         site_id=site.id,
+        project_id=site.project_id,
         site_name=site.name,
         area_hectares=site.area_hectares,
         summary=summary,
