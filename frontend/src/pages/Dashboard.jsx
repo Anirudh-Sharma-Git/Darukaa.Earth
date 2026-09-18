@@ -93,9 +93,7 @@ function Dashboard() {
       } catch (error) {
         if (cancelled) return;
 
-        setError(
-          error.response?.data?.detail || "Unable to load projects.",
-        );
+        setError(error.response?.data?.detail || "Unable to load projects.");
       } finally {
         if (!cancelled) {
           setLoading(false);
